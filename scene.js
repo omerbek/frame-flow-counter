@@ -6,6 +6,15 @@ const mint = '#9ef4dc';
 const amber = '#ffcb7d';
 const ink = '#152129';
 const duration = 8;
+const controls = [...document.querySelectorAll('#settings input')];
+const settings = Object.fromEntries(controls.map(input => [
+  input.id, input.type === 'number' ? Number(input.value) : input.value
+]));
+controls.forEach(input => input.addEventListener('input', () => {
+  if (input.type === 'number' && (input.value === '' || !input.validity.valid)) return;
+  settings[input.id] = input.type === 'number' ? input.valueAsNumber : input.value;
+  draw();
+}));
 
 function rect(x, y, w, h, color) {
   ctx.fillStyle = color;
@@ -22,9 +31,9 @@ const clamp = value => Math.max(0, Math.min(1, value));
 const smooth = value => clamp(value) ** 2 * (3 - 2 * clamp(value));
 
 function render(t) {
-  const frame = Math.floor(t * 30);
-  label(`${Math.round(18 + 24 * smooth(frame / 150))} L/s`, 55, 236, 95);
-  label(`Kare ${frame} · 30 FPS`, 60, 289, 22, amber);
+  const frame = Math.floor(t * settings.fps);
+  label(`${Math.round(settings.start + (settings.end - settings.start) * smooth(frame / (5 * settings.fps)))} L/s`, 55, 236, 95);
+  label(`Kare ${frame} · ${settings.fps} FPS`, 60, 289, 22, amber);
 }
 
 const seek = document.querySelector('#seek');
@@ -65,6 +74,13 @@ play.addEventListener('click', () => {
 seek.addEventListener('input', () => {
   position = Number(seek.value);
   draw();
+});
+
+document.querySelector('#save').addEventListener('click', () => {
+  const link = document.createElement('a');
+  link.download = 'frame-flow-counter.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
 });
 
 draw();
