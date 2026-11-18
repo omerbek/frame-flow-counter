@@ -33,7 +33,7 @@ const smooth = value => clamp(value) ** 2 * (3 - 2 * clamp(value));
 function render(t) {
   const frame = Math.floor(t * settings.fps);
   label(`${Math.round(settings.start + (settings.end - settings.start) * smooth(frame / (5 * settings.fps)))} L/s`, 55, 236, 95);
-  label(`Kare ${frame} · ${settings.fps} FPS`, 60, 289, 22, amber);
+  label(`${translate('Kare')} ${frame} · ${settings.fps} FPS`, 60, 289, 22, amber);
 }
 
 const seek = document.querySelector('#seek');
@@ -48,7 +48,7 @@ function draw() {
   rect(0, 0, canvas.width, canvas.height, ink);
   render(position);
   seek.value = position;
-  time.value = `${position.toFixed(2)} sn`;
+  time.value = `${position.toFixed(2)} ${language === 'en' ? 's' : 'sn'}`;
 }
 
 function frame(timestamp) {
@@ -61,7 +61,7 @@ function frame(timestamp) {
 
 play.addEventListener('click', () => {
   playing = !playing;
-  play.textContent = playing ? 'Duraklat' : 'Oynat';
+  updatePlaybackLabel();
   if (playing) {
     previous = null;
     animationId = requestAnimationFrame(frame);
@@ -83,4 +83,38 @@ document.querySelector('#save').addEventListener('click', () => {
   link.click();
 });
 
-draw();
+const copy = {"title": ["Kareye bağlı sayaç", "Frame Flow Counter"], "description": ["Debi değerini 30 FPS zaman çizelgesinden hesapla.", "Animate a flow reading between two values at a selected frame rate."], "preview": ["Seçili hareket deneyinin önizlemesi", "Animation preview"], "timeline": ["Zaman çizelgesi", "Timeline"], "settings": ["Sahne ayarları", "Scene settings"], "save": ["PNG indir", "Download PNG"], "start": ["İlk değer", "Start value"], "end": ["Son değer", "End value"], "fps": ["FPS", "FPS"]};
+const dictionary = {"Debi": "Flow", "ÇIKIŞ DEBİSİ": "OUTLET FLOW", "Normal çalışma": "Operating normally", "Ölçüm birimi görünür": "Unit is visible", "Durum etiketi okunur": "Status label is legible", "Geçiş sekiz saniyeye sığar": "Transition fits in eight seconds", "SU AKIŞI": "WATER FLOW", "Yalova · Su istasyonu": "Yalova · Water station", "İstasyon": "Station", "Komut": "Prompt", "Tohum": "Seed", "Örnekle": "Sample", "Çıktı": "Output", "Suyu sarı bir uyarı çizgisiyle anlat.": "Show the water as a yellow alert line.", "Akışı camgöbeği bir dalgaya dönüştür.": "Turn the flow into a cyan wave.", "Veriyi noktalardan oluşan bir haritaya işle.": "Map the data as a field of dots.", "Akış": "Flow", "Ölçüm": "Reading", "Mavi saat": "Blue hour", "Bakır günbatımı": "Copper sunset", "Yeşil şafak": "Green dawn", "Kare": "Frame", "Oynat": "Play", "Duraklat": "Pause"};
+const fieldDefaults = {};
+let language = 'tr';
+function translate(value) {
+  return language === 'en' ? (Object.hasOwn(dictionary, value) ? dictionary[value] : value) : value;
+}
+function updatePlaybackLabel() {
+  play.textContent = translate(playing ? 'Duraklat' : 'Oynat');
+}
+function setLanguage(next) {
+  const previousLanguage = language;
+  language = next;
+  document.documentElement.lang = next;
+  const index = next === 'en' ? 1 : 0;
+  document.title = copy.title[index];
+  for (const item of document.querySelectorAll('[data-i18n]')) item.textContent = copy[item.dataset.i18n][index];
+  for (const item of document.querySelectorAll('[data-i18n-label]')) item.setAttribute('aria-label', copy[item.dataset.i18nLabel][index]);
+  for (const code of ['tr', 'en']) document.querySelector('#lang-' + code).setAttribute('aria-pressed', String(code === next));
+  if (previousLanguage !== next) {
+    for (const field of document.querySelectorAll('#settings input[type="text"]')) {
+      const original = field.defaultValue;
+      const english = Object.hasOwn(fieldDefaults, original) ? fieldDefaults[original] : original;
+      if (field.value === (previousLanguage === 'en' ? english : original)) {
+        field.value = next === 'en' ? english : original;
+        field.dispatchEvent(new Event('input'));
+      }
+    }
+  }
+  updatePlaybackLabel();
+  draw();
+}
+for (const code of ['tr', 'en']) document.querySelector('#lang-' + code).addEventListener('click', () => setLanguage(code));
+
+setLanguage('tr');
