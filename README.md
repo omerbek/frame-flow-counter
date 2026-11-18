@@ -9,3 +9,11 @@ Debi değerini 30 FPS zaman çizelgesinden hesapla.
 ## İlham kaynağı
 
 Bu bağımsız sahne sentetik su istasyonu örnekleri kullanır. [Kaynak proje](https://github.com/remotion-dev/remotion).
+
+## Sahne ayarları
+
+- İlk değer
+- Son değer
+- FPS
+
+Sekiz saniyelik zaman çizelgesinden bir kare seçip **PNG indir** ile 720 × 405 piksel dışa aktarabilirsin.
